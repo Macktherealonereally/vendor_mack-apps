@@ -1,5 +1,5 @@
 #
-# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-FileCopyrightText: 2026 Macktherealonereally
 # SPDX-License-Identifier: Apache-2.0
 #
 # Apps that ship in every o1s variant (NG, MTG and AMTG). Inherited from

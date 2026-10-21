@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-FileCopyrightText: 2026 Macktherealonereally
 # SPDX-License-Identifier: Apache-2.0
 #
 # Get the prebuilt APKs listed in blobs.txt into ./prebuilt and check them
@@ -23,3 +23,5 @@ grep -v '^#' blobs.txt | while IFS='|' read -r dest sha size signer url; do
   fi
   mv "$dest.part" "$dest"; echo "got  $dest"
 done
+# whole-repo check: every pin, no empty blobs.txt, no unpinned Android.bp apk
+python3 -I tools/check-blobs.py --quiet .

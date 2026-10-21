@@ -1,5 +1,5 @@
 //
-// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-FileCopyrightText: 2026 Macktherealonereally
 // SPDX-License-Identifier: Apache-2.0
 //
 // Apps for every o1s variant. Only installed when mack-apps.mk puts this
@@ -9,12 +9,24 @@
 soong_namespace {
 }
 
+// Aurora Store is GPL-3.0-or-later. license_text puts the licence into the
+// product partition's NOTICE file (Settings > About phone > Legal information
+// > Third-party licences). The source is tag 4.8.4 of
+// https://gitlab.com/AuroraOSS/AuroraStore (see README.md).
+license {
+    name: "vendor_mack-apps_AuroraStore_license",
+    visibility: [":__subpackages__"],
+    license_kinds: ["SPDX-license-identifier-GPL-3.0-or-later"],
+    license_text: ["LICENSE.GPL-3.0"],
+}
+
 // Aurora Store: presigned (keeps the developer signature, so Aurora's own
 // self-updates install over it) and preprocessed (installed byte for byte).
 // A normal app in /product/app: no privileged permissions, installs go
 // through the system package installer with the user's consent.
 android_app_import {
     name: "AuroraStore",
+    licenses: ["vendor_mack-apps_AuroraStore_license"],
     apk: "prebuilt/AuroraStore/AuroraStore.apk",
     presigned: true,
     preprocessed: true,

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# SPDX-FileCopyrightText: The LineageOS Project
+# SPDX-FileCopyrightText: 2026 Macktherealonereally
 # SPDX-License-Identifier: Apache-2.0
 #
 """Check the prebuilt APKs of vendor/mack-apps against blobs.txt.
@@ -11,6 +11,8 @@ value `apksigner verify --print-certs` shows as "certificate SHA-256 digest").
 The sha256 pin already fixes the content; the signer pin makes an update to a
 new version fail unless the developer key stays the same (self-updates need it).
 This reads the certificate, it does not verify signatures: apksigner does that.
+It also fails when blobs.txt pins nothing, or when an `apk:` path in an
+Android.bp of this repo has no blobs.txt line, so no APK can ship unpinned.
 
   check-blobs.py [--quiet] <vendor/mack-apps dir>     check every blob
   check-blobs.py --file <apk> <dest> <dir>            check a download for <dest>
@@ -21,6 +23,7 @@ Prints OK (exit 0) or one line per problem (exit 1). Standard library only.
 import argparse
 import hashlib
 import pathlib
+import re
 import struct
 import sys
 
@@ -81,6 +84,25 @@ def signer_cert_sha256(data: bytes) -> tuple[str, str]:
     raise ValueError("no v2/v3 signature in the APK Signing Block")
 
 
+def apk_paths(top: pathlib.Path) -> list[str]:
+    """Every `apk: "..."` of the Android.bp files in this repo, relative to top."""
+    paths = []
+    for bp in sorted(top.rglob("Android.bp")):
+        if "prebuilt" in bp.relative_to(top).parts:
+            continue
+        for m in re.finditer(r'\bapk\s*:\s*"([^"]+)"', bp.read_text()):
+            paths.append((bp.parent.relative_to(top) / m.group(1)).as_posix())
+    return paths
+
+
+def structure(top: pathlib.Path, blobs: list) -> list[str]:
+    if not blobs:
+        return ["blobs.txt: no pins (empty or comments only)"]
+    pinned = {b[0] for b in blobs}
+    return [f"{path}: used by an Android.bp apk: but not pinned in blobs.txt"
+            for path in apk_paths(top) if path not in pinned]
+
+
 def check(path: pathlib.Path, dest, sha, size, signer) -> list[str]:
     if not path.is_file():
         return [f"{dest}: missing"]
@@ -109,14 +131,14 @@ def main():
     args = p.parse_args()
     top = pathlib.Path(args.top)
     blobs = list(read_blobs(top))
-    problems = []
+    problems = structure(top, blobs)
     if args.file:
         apk, want = args.file
         match = [b for b in blobs if b[0] == want]
         if not match:
             sys.exit(f"{want}: not in blobs.txt")
         _, sha, size, signer, _ = match[0]
-        problems = check(pathlib.Path(apk), want, sha, size, signer)
+        problems += check(pathlib.Path(apk), want, sha, size, signer)
     else:
         for dest, sha, size, signer, _url in blobs:
             found = check(top / dest, dest, sha, size, signer)
