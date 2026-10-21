@@ -1,0 +1,10 @@
+# Prebuilt APKs of vendor/mack-apps. The APKs are NOT in git (see .gitignore);
+# get them with ./fetch-blobs.sh. tools/check-blobs.py checks every line, and
+# mack-apps.mk stops the build when a file is missing or does not match.
+# Format: dest|sha256|size|signer certificate sha256|download URL
+#
+# Aurora Store 4.8.4 (versionCode 76), vanilla flavour, developer-signed release
+# from https://gitlab.com/AuroraOSS/AuroraStore/-/releases/4.8.4 (GPL-3.0-or-later,
+# source: tag 4.8.4). Signer = the certificate fingerprint in Aurora's README;
+# keep it when updating, or Aurora's own self-updates stop working.
+prebuilt/AuroraStore/AuroraStore.apk|8a1ed9aa09631290da91cb793e0517b0f20dc70239ac94ae6682cd94f91a4bad|9362660|4c626157ad02bda3401a7263555f68a79663fc3e13a4d4369a12570941aa280f|https://gitlab.com/AuroraOSS/AuroraStore/uploads/245eec8867a47057cbc54535f73b32ee/AuroraStore-4.8.4.apk

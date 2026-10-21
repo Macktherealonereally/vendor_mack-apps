@@ -1,0 +1,3 @@
+# Prebuilt APKs: fetched by fetch-blobs.sh, never committed.
+/prebuilt/
+*.part

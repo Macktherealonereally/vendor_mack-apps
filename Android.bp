@@ -1,0 +1,26 @@
+//
+// SPDX-FileCopyrightText: The LineageOS Project
+// SPDX-License-Identifier: Apache-2.0
+//
+// Apps for every o1s variant. Only installed when mack-apps.mk puts this
+// namespace into PRODUCT_SOONG_NAMESPACES. The APKs come from fetch-blobs.sh
+// (pinned in blobs.txt).
+
+soong_namespace {
+}
+
+// Aurora Store: presigned (keeps the developer signature, so Aurora's own
+// self-updates install over it) and preprocessed (installed byte for byte).
+// A normal app in /product/app: no privileged permissions, installs go
+// through the system package installer with the user's consent.
+android_app_import {
+    name: "AuroraStore",
+    apk: "prebuilt/AuroraStore/AuroraStore.apk",
+    presigned: true,
+    preprocessed: true,
+    dex_preopt: {
+        enabled: false,
+    },
+    enforce_uses_libs: false,
+    product_specific: true,
+}
