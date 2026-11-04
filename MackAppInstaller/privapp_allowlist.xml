@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2026 Macktherealonereally
+     SPDX-License-Identifier: Apache-2.0
+-->
+<!-- ro.control_privapp_permissions=enforce (vendor/lineage/config/common.mk):
+     every privileged permission in AndroidManifest.xml must be listed here,
+     or PackageManager stops the boot. -->
+<permissions>
+    <privapp-permissions package="io.github.macktherealonereally.appinstaller">
+        <permission name="android.permission.INSTALL_PACKAGES" />
+    </privapp-permissions>
+</permissions>

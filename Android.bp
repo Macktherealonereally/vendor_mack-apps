@@ -20,19 +20,33 @@ license {
     license_text: ["LICENSE.GPL-3.0"],
 }
 
-// Aurora Store: presigned (keeps the developer signature, so Aurora's own
-// self-updates install over it) and preprocessed (installed byte for byte).
-// A normal app in /product/app: no privileged permissions, installs go
-// through the system package installer with the user's consent.
-android_app_import {
-    name: "AuroraStore",
-    licenses: ["vendor_mack-apps_AuroraStore_license"],
-    apk: "prebuilt/AuroraStore/AuroraStore.apk",
-    presigned: true,
-    preprocessed: true,
-    dex_preopt: {
+// Apache-2.0: the code of this repo (MackAppInstaller).
+license {
+    name: "vendor_mack-apps_license",
+    visibility: [":__subpackages__"],
+    license_kinds: ["SPDX-license-identifier-Apache-2.0"],
+}
+
+// MackAppInstaller: installs Aurora Store once per user as a normal user app,
+// so it can be uninstalled, downgraded or replaced (README.md). No UI, no
+// network. Aurora's APK is an asset of this APK, byte for byte the pinned
+// file (blobs.txt): no extra .apk lands in target-files, so
+// sign_target_files_apks only re-signs this app (default key -> releasekey)
+// and never touches Aurora's signature. Both licences apply to this APK.
+android_app {
+    name: "MackAppInstaller",
+    licenses: [
+        "vendor_mack-apps_license",
+        "vendor_mack-apps_AuroraStore_license",
+    ],
+    srcs: ["MackAppInstaller/src/**/*.java"],
+    manifest: "MackAppInstaller/AndroidManifest.xml",
+    asset_dirs: ["prebuilt/AuroraStore"],
+    sdk_version: "current",
+    privileged: true,
+    privapp_allowlist: "MackAppInstaller/privapp_allowlist.xml",
+    product_specific: true,
+    optimize: {
         enabled: false,
     },
-    enforce_uses_libs: false,
-    product_specific: true,
 }

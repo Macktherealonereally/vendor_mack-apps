@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: 2026 Macktherealonereally
+     SPDX-License-Identifier: Apache-2.0
+-->
+<!-- Installs the bundled Aurora Store once per user as a normal, removable
+     user app (see README.md). No UI, no launcher entry, no network. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.github.macktherealonereally.appinstaller">
+
+    <!-- signature|privileged: granted through privapp_allowlist.xml -->
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!-- package visibility: only the app it installs -->
+    <queries>
+        <package android:name="com.aurora.store" />
+    </queries>
+
+    <application
+        android:label="Mack app installer"
+        android:allowBackup="false">
+
+        <!-- BOOT_COMPLETED is a protected broadcast (only the system sends it);
+             it comes once per user, after that user is unlocked. -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- PackageInstaller reports the result here (PendingIntent of this app) -->
+        <receiver
+            android:name=".InstallResultReceiver"
+            android:exported="false" />
+    </application>
+</manifest>

@@ -17,6 +17,8 @@ endif
 
 PRODUCT_SOONG_NAMESPACES += $(MACK_APPS_PATH)
 
-# Aurora Store (com.aurora.store), GPL-3.0-or-later, see README.md
+# Aurora Store (com.aurora.store), GPL-3.0-or-later, see README.md. Not a
+# system app: MackAppInstaller (/product/priv-app) carries the APK and installs
+# it once per user as a normal, removable user app.
 PRODUCT_PACKAGES += \
-    AuroraStore
+    MackAppInstaller

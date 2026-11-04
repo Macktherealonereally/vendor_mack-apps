@@ -12,16 +12,18 @@ grep -v '^#' blobs.txt | while IFS='|' read -r dest sha size signer url; do
   [ -n "$dest" ] || continue
   if python3 -I tools/check-blobs.py --file "$dest" "$dest" . >/dev/null; then echo "ok   $dest"; continue; fi
   mkdir -p "$(dirname "$dest")"
+  # download next to prebuilt/, not into it: an asset dir must hold pinned files only
+  part="prebuilt/.$(basename "$dest").part"
   cached=${MACK_APPS_BLOB_CACHE:-}/$(basename "$url")
   if [ -n "${MACK_APPS_BLOB_CACHE:-}" ] && [ -f "$cached" ]; then
-    cp "$cached" "$dest.part"
+    cp "$cached" "$part"
   else
-    curl -fsSL -o "$dest.part" "$url"
+    curl -fsSL -o "$part" "$url"
   fi
-  if ! python3 -I tools/check-blobs.py --file "$dest.part" "$dest" .; then
-    rm -f "$dest.part"; echo "rejected: $dest" >&2; exit 1
+  if ! python3 -I tools/check-blobs.py --file "$part" "$dest" .; then
+    rm -f "$part"; echo "rejected: $dest" >&2; exit 1
   fi
-  mv "$dest.part" "$dest"; echo "got  $dest"
+  mv "$part" "$dest"; echo "got  $dest"
 done
-# whole-repo check: every pin, no empty blobs.txt, no unpinned Android.bp apk
+# whole-repo check: every pin, no empty blobs.txt, no unpinned Android.bp apk or asset
 python3 -I tools/check-blobs.py --quiet .

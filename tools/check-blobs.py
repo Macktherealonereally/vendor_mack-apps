@@ -11,8 +11,9 @@ value `apksigner verify --print-certs` shows as "certificate SHA-256 digest").
 The sha256 pin already fixes the content; the signer pin makes an update to a
 new version fail unless the developer key stays the same (self-updates need it).
 This reads the certificate, it does not verify signatures: apksigner does that.
-It also fails when blobs.txt pins nothing, or when an `apk:` path in an
-Android.bp of this repo has no blobs.txt line, so no APK can ship unpinned.
+It also fails when blobs.txt pins nothing, or when an `apk:` path or a file in
+an `asset_dirs` directory of an Android.bp of this repo has no blobs.txt line,
+so no APK can ship unpinned.
 
   check-blobs.py [--quiet] <vendor/mack-apps dir>     check every blob
   check-blobs.py --file <apk> <dest> <dir>            check a download for <dest>
@@ -85,13 +86,20 @@ def signer_cert_sha256(data: bytes) -> tuple[str, str]:
 
 
 def apk_paths(top: pathlib.Path) -> list[str]:
-    """Every `apk: "..."` of the Android.bp files in this repo, relative to top."""
+    """Every `apk: "..."` of the Android.bp files in this repo, and every file
+    in their `asset_dirs` (shipped inside an APK), relative to top."""
     paths = []
     for bp in sorted(top.rglob("Android.bp")):
         if "prebuilt" in bp.relative_to(top).parts:
             continue
-        for m in re.finditer(r'\bapk\s*:\s*"([^"]+)"', bp.read_text()):
-            paths.append((bp.parent.relative_to(top) / m.group(1)).as_posix())
+        base = bp.parent.relative_to(top)
+        text = bp.read_text()
+        for m in re.finditer(r'\bapk\s*:\s*"([^"]+)"', text):
+            paths.append((base / m.group(1)).as_posix())
+        for m in re.finditer(r'\basset_dirs\s*:\s*\[([^\]]*)\]', text):
+            for d in re.findall(r'"([^"]+)"', m.group(1)):
+                paths += [f.relative_to(top).as_posix()
+                          for f in sorted((top / base / d).rglob("*")) if f.is_file()]
     return paths
 
 
@@ -99,7 +107,7 @@ def structure(top: pathlib.Path, blobs: list) -> list[str]:
     if not blobs:
         return ["blobs.txt: no pins (empty or comments only)"]
     pinned = {b[0] for b in blobs}
-    return [f"{path}: used by an Android.bp apk: but not pinned in blobs.txt"
+    return [f"{path}: used by an Android.bp apk: or asset_dirs but not pinned in blobs.txt"
             for path in apk_paths(top) if path not in pinned]
 
 
